@@ -1,0 +1,41 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<header class="bg-base-200">
+  <div class="navbar container mx-auto">
+    <div class="navbar-start">
+      <a href="/" class="btn btn-ghost text-xl">
+        <Icon name="mdi:death-star-variant" class="w-8 h-8" />
+        Jedy StarWars
+      </a>
+    </div>
+    <div class="navbar-end">
+      <a href="/login" class="btn btn-ghost">Login</a>
+      <a href="/register" class="btn btn-ghost">Register</a>
+      <button id="logout-button" class="btn btn-ghost" style="display: none;"
+        >Logout</button
+      >
+    </div>
+  </div>
+</header>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const logoutButton = document.getElementById("logout-button");
+    const token = localStorage.getItem("token");
+
+    if (logoutButton) {
+      if (token) {
+        logoutButton.style.display = "block"; // Show the button if a token exists
+      } else {
+        logoutButton.style.display = "none"; // Hide the button if no token
+      }
+
+      logoutButton.addEventListener("click", () => {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      });
+    }
+  });
+</script>

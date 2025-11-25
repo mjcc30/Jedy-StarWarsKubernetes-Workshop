@@ -1,0 +1,53 @@
+# ==========================================
+# 🐘 Postgres Deployment
+# ==========================================
+# This defines HOW to run the database container.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment # Name of the Postgres Deployment
+  # ==========================================
+  # Namespaces allow us to group resources (like folders).
+  # You must create it first: `kubectl create namespace starwars`
+  namespace: starwars
+spec:
+  replicas: 1 # We only want 1 database instance (Stateful apps are hard to scale)
+  selector:
+    matchLabels:
+      component: postgres # This deployment manages pods with this label
+  template: # The blueprint for the Pod
+    metadata:
+      labels:
+        component: postgres # This label must match the selector above
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine # The Docker image to use
+          ports:
+            - containerPort: 5432 # Port exposed by the container
+          env:
+            # Environment variables for configuration
+            - name: POSTGRES_DB
+              value: "star_wars"
+            - name: POSTGRES_USER
+              value: "star_wars_user"
+            - name: POSTGRES_PASSWORD
+              value: "star_wars_password"
+---
+# ==========================================
+# 🔌 Postgres Service
+# ==========================================
+# This provides a stable internal IP/DNS name for the database.
+# Other pods can reach it using "postgres-service.starwars.svc.cluster.local"
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service # Name of the Postgres Service
+  namespace: starwars
+spec:
+  type: ClusterIP # Internal only. Not accessible from outside the cluster.
+  selector:
+    component: postgres # Traffic is sent to pods with this label
+  ports:
+    - port: 5432       # Port exposed by this Service
+      targetPort: 5432 # Port on the Container to forward traffic to

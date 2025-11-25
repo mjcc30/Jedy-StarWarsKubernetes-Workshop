@@ -1,0 +1,81 @@
+---
+# --- Backend Deployment (Python API) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: back-deployment
+  namespace: starwars
+spec:
+  replicas: 3 # Number of replicas for high availability
+  selector:
+    matchLabels:
+      component: back # Matches the label in the pod template
+  template:
+    metadata:
+      labels:
+        component: back # Label to identify backend pods
+    spec:
+      # InitContainer: Waits for the Database to be ready before starting the app.
+      # This prevents the app from crashing/restarting loop while waiting for DB.
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.28
+          command: ['sh', '-c', "until nc -z $PGHOST $PGPORT; do echo waiting for postgres; sleep 2; done"]
+          envFrom:
+            - configMapRef:
+                name: back-configmap
+      containers:
+        - name: server
+          image: jedy-starwarskubernetes-back:latest # Docker image optimized for production
+          imagePullPolicy: IfNotPresent # Pull the image only if not present
+          ports:
+            - containerPort: 4000 # Port where the backend listens
+          # Resource requests and limits for efficient resource management
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          # Liveness Probe: Checks if the app is alive. Restarts it if not.
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4000
+            initialDelaySeconds: 10 # Wait 10s before first check to let app startup
+            periodSeconds: 15 # Check every 15s
+          # Readiness Probe: Checks if the app is ready to traffic.
+          # K8s won't kill old pods until this passes.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4000
+            initialDelaySeconds: 5 # Wait 5s before first check
+            periodSeconds: 10 # Check every 10s
+          # Loading all configuration (ConfigMaps and Secrets) via envFrom
+          envFrom:
+            - configMapRef:
+                name: back-configmap # Reference to the backend ConfigMap
+            - secretRef:
+                name: pgpassword
+            # - secretRef:
+            #     name: google-api-key # Uncomment if using Google API
+            # - secretRef:
+            #     name: openrouter-api-key # Uncomment if using OpenRouter API
+            - secretRef:
+                name: jwt-secret
+--- 
+# --- Internal Service for Backend ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: back-cluster-ip-service
+  namespace: starwars
+spec:
+  type: ClusterIP # Accessible only inside the cluster
+  selector:
+    component: back
+  ports:
+    - port: 4000 # Port exposed by the Service
+      targetPort: 4000 # Target container port

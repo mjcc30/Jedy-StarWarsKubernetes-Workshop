@@ -1,0 +1,64 @@
+---
+# --- Frontend Deployment (Astro SSR) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-deployment
+  namespace: starwars
+spec:
+  replicas: 3 # High Availability
+  selector:
+    matchLabels:
+      component: front # Matches the label in the pod template
+  template:
+    metadata:
+      labels:
+        component: front # Label to identify frontend pods
+    spec:
+      containers:
+        - name: client
+          image: jedy-starwarskubernetes-front:latest # Docker image optimized for production
+          imagePullPolicy: IfNotPresent # Pull the image only if not present
+          ports:
+            - containerPort: 4321
+          # Ressource requests and limits for efficient resource management
+          resources:
+            requests:
+              cpu: "100m" # Request for 0.1 CPU
+              memory: "128Mi" # Request for 128 MB of memory
+            limits:
+              cpu: "200m" # Limit to 0.2 CPU
+              memory: "256Mi" # Limit to 256 MB of memory
+          # Liveness Probe: Checks if the app is alive. Restarts it if not.
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4321
+            initialDelaySeconds: 15 # Wait 15s before first check
+            periodSeconds: 20 # Check every 20s
+          # Readiness Probe: Checks if the app is ready to traffic.
+          # K8s won't kill old pods until this passes.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4321
+            initialDelaySeconds: 5 # Wait 5s before first check
+            periodSeconds: 10 # Check every 10s
+          # Loading global environment variables from ConfigMap
+          envFrom:
+            - configMapRef:
+                name: front-configmap # Reference to the frontend ConfigMap
+---
+# --- Internal Service for Frontend ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-cluster-ip-service
+  namespace: starwars
+spec:
+  type: ClusterIP # Accessible only inside the cluster
+  selector:
+    component: front
+  ports:
+    - port: 4321
+      targetPort: 4321

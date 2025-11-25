@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gateways # New namespace for our shared Gateway
+---
+# --- Shared Gateway Configuration ---
+apiVersion: gateway.networking.k8s.io/v1 # API version for Gateway resources
+kind: Gateway
+metadata:
+  name: infra-gateway # Name of our Gateway
+  namespace: gateways
+spec:
+  gatewayClassName: eg # References the GatewayClass created earlier
+  listeners:
+  - name: http # Name of the listener
+    protocol: HTTP # Protocol for the listener
+    port: 80 # Port for HTTP traffic
+    allowedRoutes: # Specifies which namespaces this Gateway can route for
+      namespaces:
+        from: All # This Gateway now serves as a central entry point for ALL namespaces

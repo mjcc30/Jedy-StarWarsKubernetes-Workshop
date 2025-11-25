@@ -1,0 +1,67 @@
+---
+# --- Postgres Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-cluster-ip-service
+  namespace: starwars
+  labels:
+    component: postgres
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  clusterIP: None # Headless Service (Recommended for StatefulSets)
+  selector:
+    component: postgres
+---
+# --- Postgres StatefulSet ---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-statefulset
+  namespace: starwars
+spec:
+  serviceName: "postgres-cluster-ip-service" # Link to the Headless Service
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres
+  template:
+    metadata:
+      labels:
+        component: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine # Explicit version is better
+          ports:
+            - containerPort: 5432
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data # Standard path for Postgres
+              subPath: postgres-db # Subpath to keep root clean
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgpassword
+                  key: PGPASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/postgres-db # Explicit data directory
+  # Volume Claim Template: Automatically creates a PVC for each replica
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 2Gi

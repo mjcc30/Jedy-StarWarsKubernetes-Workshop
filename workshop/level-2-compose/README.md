@@ -1,0 +1,163 @@
+# 🎓 Level 2: Orchestration (Composer)
+
+> *"Control, control, you must learn control!"* — Yoda
+
+Welcome back, young Padawan! 🧘‍♂️
+
+In **Level 1**, you felt the pain of the "manual way". You typed long commands, managed networks by hand, and felt the disturbance when services couldn't talk to each other.
+
+Now, we introduce **Docker Compose**.
+Think of it as the **Auto-Pilot** for your containers. It allows you to describe your entire infrastructure (Database, Backend, Frontend) in a single file and launch it with one command.
+
+**Your Mission:**
+
+1. Define the Stack (`compose.yaml`).
+2. Launch the Stack.
+3. Witness the harmony of automatic networking.
+
+---
+
+## 🛠️ Step 1: The Plan
+
+We need a configuration file. This is the `compose.yaml` file.
+It defines:
+
+- **Services**: The containers (db, back, front).
+- **Networks**: The communication channels.
+- **Volumes**: The data storage.
+
+1. **Inspect the compose File:**
+    Open the `compose.yaml` file. Notice the elegance:
+    - **No more IP addresses**: The backend talks to `database` (the service name).
+    - **No more long flags**: Environment variables are listed clearly.
+    - **Port Mapping**: We map `7082:5432` for the DB to avoid conflict with your local Postgres you installed before from Level 0!
+      > *Tip: If you don't need the local Postgres from Level 0 anymore, you can stop or uninstall it to free up resources.*
+
+2. **Deploy the Stack:**
+
+3. **Navigate to the folder:**
+
+    ```bash
+    cd workshop/level-2-compose
+    ```
+
+## 🚀 Step 2: Launch the Stack
+
+You are now at the root of the project. A `compose.yaml` file is ready.
+
+1. **Start Containers:**
+
+    ```bash
+    docker compose up --build
+    ```
+
+    - `--build`: Forces a rebuild of the images (crucial if you changed code).
+    - > *Tip: Add `-d` to run in "Detached" (background) mode.*
+
+2. **Observe the Startup:**
+    You will see logs from all three services streaming together.
+    - Wait for database-1 | `LOG: database system is ready to accept connections`.
+    - Wait for back-1 | `INFO: Application startup complete.`.
+    - Wait for front-1 | `Local: http://localhost:4321`.
+    - > *Tip: backend is accessible from `http://localhost:4000`*
+
+---
+
+## 🧪 Step 3: Verify the Systems
+
+1. **Check Status:**
+    Open a **new terminal** (if you didn't use `-d`) and type:
+
+    ```bash
+    docker compose ps
+    ```
+
+    *You should see 3 healthy services.*
+
+2. **Test the Interface:**
+
+    Open [http://localhost:4321](http://localhost:4321).
+
+    - **Register**: Go to `/register` (or click the link) and create a user.
+
+    - **Login**: Use your new credentials.
+
+    - **Search**: Now try the search bar.
+
+    - **It works!**
+
+    - *Why?* Because `docker compose` put them on the same network? **No!**
+    - The browser still talks to `localhost:4000` (Backend) and `localhost:4321` (Frontend). Compose just made starting them easier. The *real* networking fix happens in **Level 4**. But at least now, everything is running correctly on the right ports!
+
+---
+
+## 🧠 Service Discovery
+
+Look at this line in `compose.yaml`:
+
+```yaml
+DATABASE_URL=postgresql://...@database:5432/...
+```
+
+In **Level 1**, we had to use `host.docker.internal` or `--network host`.
+In **Level 2**, we just use `database`.
+
+**Why?**
+Docker Compose creates an internal **DNS**. When the Backend asks for "database", Docker resolves it to the internal IP of the database container. This is the power of Orchestration.
+
+---
+
+## 🛑 Step 4: Mission Debrief
+
+To shut down the stack:
+
+```bash
+docker compose down
+```
+
+To destroy the stack AND the data (Volumes):
+
+```bash
+docker compose down -v
+```
+
+**Congratulations!** You have mastered Local Orchestration.
+You are now ready for **Level 3**, where we leave the safety of our local machine and enter the vastness of **Kubernetes**.
+
+👉 *Proceed you must.*
+
+---
+
+## 🆘 Troubleshooting
+
+**"Port already allocated" error?**
+If you see `Bind for 0.0.0.0:4000 failed: port is already allocated`:
+
+- You might still have the manual containers from Level 1 running.
+- Run `docker rm -f jedy-back jedy-front star-wars-db` to force clear them.
+- Or you have the local Python/Node processes from Level 0 running. Kill them!
+
+**Database connection failed?**
+
+- Check the logs: `docker compose logs back`.
+  - If it says `connection refused`, the database might be slow to start. Compose usually handles this with `restart: on-failure`, so it should retry and connect eventually.
+
+**"ENOTFOUND jedy-back" or "http proxy error"?**
+If you see an error looking for `jedy-back` or `localhost`:
+
+Explanation:
+  This error happens when the Docker image is outdated.
+
+   1. You (or the code) might have changed astro.config.mjs to point to jedy-back at some point.
+   2. An image was built with that configuration.
+   3. Even if you corrected the file to back:4000 on your disk, Docker is still using the old image.
+
+- Your container is running an **old version** of the code/configuration.
+- Docker Compose might be using a cached image.
+- **Fix:** Force a rebuild:
+
+  press Ctrl+C to quit the last `docker compose up` running
+
+  ```bash
+  docker compose up --build
+  ```

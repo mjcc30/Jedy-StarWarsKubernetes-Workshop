@@ -1,0 +1,49 @@
+services:
+  database:
+    image: postgres:16-alpine # Use lightweight Postgres image with Alpine Linux
+    restart: "on-failure" # Restart policy
+    ports:
+      - "7082:5432" # Map host port 7082 to container port 5432
+    volumes:
+      - database:/data/postgres # Persist data in a volume named 'database'
+    environment:
+      - PGDATA=/data/postgres # Set Postgres data directory
+      - POSTGRES_DB=star_wars # Database name
+      - POSTGRES_USER=star_wars_user # Database user
+      - POSTGRES_PASSWORD=star_wars_password # Database password
+
+  back:
+    build:
+      context: ./back # Build context for the back service
+    ports:
+      - "4000:4000" # Map host port 4000 to container port 4000
+    restart: "on-failure" 
+    volumes:
+      - ./back:/app # Map local back directory to /app in the container
+    depends_on:
+      - database # Ensure database starts before back
+    environment:
+      - DATABASE_URL=postgresql://star_wars_user:star_wars_password@database:5432/star_wars # Database connection URL
+      - API_ENTRYPOINT=https://swapi.dev/api # External API endpoint
+      - JWT_SECRET=MyBestSecret # JWT secret for authentication
+
+  front:
+    build:
+      context: ./front # Build context for the front service
+      dockerfile: Dockerfile # Specify Dockerfile for front
+    restart: "on-failure"
+    tty: true # Allocate a pseudo-TTY
+    stdin_open: true # Keep stdin open
+    # volumes:
+    #   - ./front:/app # Map local front directory to /app in the container
+    #   - /app/node_modules # Ensure local node_modules is not overwritten
+    ports:
+      - "4321:4321" # Map host port 4321 to container port 4321
+    environment:
+      - REACT_APP_API_ENTRYPOINT=http://localhost:4000 # Back service endpoint
+    command: npm run dev -- --host # Run front in development mode
+    depends_on:
+      - back # Ensure back starts before front
+
+volumes:
+  database: # Persistent volume for Postgres data

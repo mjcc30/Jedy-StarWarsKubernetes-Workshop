@@ -1,0 +1,503 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<div class="max-w-4xl mx-auto">
+  <!-- Search Controls -->
+  <form id="search-form" class="flex flex-col md:flex-row gap-4 mb-12">
+    <div class="join w-full glass-panel rounded-lg p-1">
+      <select
+        id="resource-select"
+        class="select select-bordered join-item bg-transparent text-yellow-400 border-none focus:outline-none w-1/3 font-orbitron tracking-wider"
+      >
+        <option value="people" selected>People</option>
+        <option value="planets">Planets</option>
+        <option value="starships">Starships</option>
+      </select>
+      <div class="w-px bg-white/20 my-2"></div>
+      <input
+        id="search-input"
+        type="text"
+        placeholder="Search the archives..."
+        class="input join-item w-full bg-transparent border-none text-white placeholder-gray-500 focus:outline-none"
+      />
+      <button
+        type="submit"
+        class="btn join-item bg-yellow-400 border-none text-black hover:bg-yellow-300 font-bold px-8"
+      >
+        <Icon name="mdi:magnify" class="w-6 h-6" />
+      </button>
+    </div>
+  </form>
+
+  <!-- Results Area -->
+  <div id="results-container" class="min-h-[200px]">
+    <div class="text-center text-gray-500 italic mt-10">
+      <Icon
+        name="mdi:database-search"
+        class="w-16 h-16 mx-auto mb-4 opacity-50"
+      />
+      <p>Select a category and enter a search term to begin.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Force refresh
+  // --- Configuration ---
+  console.log("Search script loaded");
+
+  const fieldMappings = {
+    people: {
+      birth_year: "Born",
+      gender: "Gender",
+      height: "Height",
+      mass: "Mass",
+      hair_color: "Hair",
+      eye_color: "Eyes",
+    },
+    planets: {
+      climate: "Climate",
+      terrain: "Terrain",
+      population: "Population",
+      gravity: "Gravity",
+      diameter: "Diameter",
+    },
+    starships: {
+      model: "Model",
+      starship_class: "Class",
+      manufacturer: "Maker",
+      cost_in_credits: "Cost",
+      length: "Length",
+      crew: "Crew",
+      passengers: "Passengers",
+      hyperdrive_rating: "Hyperdrive",
+    },
+  };
+
+  const iconMappings = {
+    birth_year: "mdi:calendar-star",
+    gender: "mdi:gender-male-female",
+    height: "mdi:ruler",
+    mass: "mdi:weight",
+    hair_color: "mdi:face-man-profile", // approximation
+    eye_color: "mdi:eye",
+    climate: "mdi:weather-partly-cloudy",
+    terrain: "mdi:mountain",
+    population: "mdi:account-group",
+    gravity: "mdi:arrow-down-bold",
+    diameter: "mdi:circle-outline",
+    model: "mdi:rocket-launch",
+    starship_class: "mdi:shape",
+    manufacturer: "mdi:factory",
+    cost_in_credits: "mdi:currency-usd",
+    length: "mdi:ruler",
+    crew: "mdi:account-tie",
+    passengers: "mdi:seat-passenger",
+    hyperdrive_rating: "mdi:flash",
+  };
+
+  const resourceIcons = {
+    people: "mdi:account",
+    planets: "mdi:earth",
+    starships: "mdi:rocket",
+  };
+
+  // --- AI Status ---
+  let aiEnabled = false;
+
+  (async () => {
+    try {
+      const res = await fetch("/api/ai/status");
+      if (res.ok) {
+        const data = await res.json();
+        aiEnabled = data.enabled;
+      }
+    } catch (e) {
+      console.warn("Could not check AI status", e);
+    }
+  })();
+
+  // --- DOM Elements ---
+  const form = document.getElementById("search-form");
+  const resourceSelect = document.getElementById("resource-select");
+  const searchInput = document.getElementById("search-input");
+  const resultsContainer = document.getElementById("results-container");
+
+  // --- Event Listener ---
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const resource = resourceSelect.value;
+    const query = searchInput.value.trim();
+
+    if (!query) {
+      showMessage(
+        "Please enter a search term to query the archives.",
+        "warning"
+      );
+      return;
+    }
+
+    showLoading();
+
+    try {
+      const response = await fetch(
+        `/api/swapi/search?resource=${resource}&query=${encodeURIComponent(
+          query
+        )}`
+      );
+
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const data = await response.json();
+
+      if (data.results && data.results.length > 0) {
+        renderResults(data.results, resource);
+      } else {
+        showMessage(`No ${resource} found matching "${query}".`, "info");
+      }
+    } catch (error) {
+      console.error(error);
+      showMessage("Communication with the Jedi Archives interrupted.", "error");
+    }
+  });
+
+  // --- Helper Functions ---
+
+  function showLoading() {
+    resultsContainer.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-12">
+        <span class="loading loading-ring loading-lg text-yellow-400 w-16 h-16"></span>
+        <p class="mt-4 text-yellow-400 font-orbitron tracking-widest animate-pulse">SEARCHING ARCHIVES...</p>
+      </div>
+    `;
+  }
+
+  function showMessage(msg, type = "info") {
+    let icon = "mdi:information";
+    let colorClass = "text-blue-400";
+
+    if (type === "error") {
+      icon = "mdi:alert-circle";
+      colorClass = "text-red-500";
+    } else if (type === "warning") {
+      icon = "mdi:alert";
+      colorClass = "text-yellow-500";
+    }
+
+    resultsContainer.innerHTML = `
+      <div class="text-center py-12 ${colorClass}">
+         <p class="text-xl font-bold">${msg}</p>
+      </div>
+    `;
+  }
+
+  function renderResults(items, resourceType) {
+    const mappings = fieldMappings[resourceType] || {};
+    const typeIcon = resourceIcons[resourceType] || "mdi:help-circle";
+
+    const cardsHtml = items
+      .map((item) => {
+        // Generate the grid items for whitelisted fields
+        const detailsHtml = Object.entries(mappings)
+          .map(([key, label]) => {
+            const value = item[key];
+            if (!value || value === "n/a" || value === "unknown") return ""; // Skip empty fields
+
+            // We can't render actual Astro components in client-side JS strings easily without hydration,
+            // so we'll use a simple span with a class that we can potentially map to icons via CSS or just use text labels for now.
+            // *Correction*: To keep it simple and robust, we will use text labels styled nicely.
+
+            return `
+              <div class="flex flex-col p-2 bg-white/5 rounded hover:bg-white/10 transition-colors">
+                <span class="text-xs text-gray-400 uppercase tracking-wider mb-1">${label}</span>
+                <span class="font-semibold text-white truncate" title="${value}">${value}</span>
+              </div>
+            `;
+          })
+          .join("");
+
+        // --- Generate Image URL ---
+        // We delegate generation to our Backend (Gemini Nano Banana / Cache)
+        const imageUrl = `/api/ai/image?name=${encodeURIComponent(item.name)}&type=${resourceType}`;
+
+        const chatButtonHtml =
+          resourceType === "people" && aiEnabled
+            ? `<button onclick="openChat('${item.name.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(item)).replace(/'/g, "\\'")}')" class="btn btn-sm bg-yellow-400 text-black border-none w-full mt-4 font-orbitron hover:bg-yellow-300">
+               <span class="mr-2">💬</span> COMMUNICATE
+             </button>`
+            : "";
+
+        const regenerateButtonHtml = aiEnabled
+          ? `<button 
+                 onclick="refreshImage('${item.name.replace(/'/g, "\\'")}', '${resourceType}', 'img-${item.name.replace(/\s/g, "-")}')"
+                 class="absolute top-2 right-2 btn btn-xs btn-circle bg-black/50 border-white/20 text-white hover:bg-yellow-400 hover:text-black opacity-0 group-hover/image:opacity-100 transition-opacity"
+                 title="Regenerate Visual"
+               >
+                 <span class="text-xs">↻</span>
+               </button>`
+          : "";
+
+        return `
+          <div class="sw-card relative group flex flex-col h-full">
+            <!-- Image Container with Skeleton Background -->
+            <div class="relative h-48 overflow-hidden border-b border-white/10 bg-gray-800 animate-pulse group/image">
+               <img 
+                 id="img-${item.name.replace(/\s/g, "-")}"
+                 src="${imageUrl}" 
+                 alt="${item.name}" 
+                 class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 opacity-0"
+                 loading="lazy" 
+                 onload="this.classList.remove('opacity-0'); this.parentElement.classList.remove('animate-pulse', 'bg-gray-800')"
+                 onerror="this.src='https://placehold.co/400x225/000000/FFE81F?text=NO+IMAGE'; this.classList.remove('opacity-0');"
+               />
+               
+               ${regenerateButtonHtml}
+
+               <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-4 pt-8 pointer-events-none">
+                  <span class="font-orbitron text-xs font-bold px-2 py-1 rounded bg-yellow-400 text-black uppercase inline-block mb-1">${resourceType}</span>
+               </div>
+            </div>
+            
+            <div class="p-6 flex-grow flex flex-col">
+              <div class="flex items-center gap-3 mb-4 border-b border-white/10 pb-4">
+                <h2 class="sw-card-title m-0 text-2xl truncate text-white">${item.name}</h2>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                ${detailsHtml}
+              </div>
+              
+              <div class="mt-auto">
+                 ${chatButtonHtml}
+              </div>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    resultsContainer.innerHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        ${cardsHtml}
+      </div>
+    `;
+  }
+
+  // --- Image Refresh Logic ---
+  window.refreshImage = (name, type, imgId) => {
+    const imgEl = document.getElementById(imgId);
+    if (!imgEl) return;
+
+    // Reset loading state
+    imgEl.classList.add("opacity-0");
+    imgEl.parentElement.classList.add("animate-pulse", "bg-gray-800");
+
+    // Force reload with timestamp and refresh flag
+    const timestamp = new Date().getTime();
+    imgEl.src = `/api/ai/image?name=${encodeURIComponent(name)}&type=${type}&force_refresh=true&t=${timestamp}`;
+  };
+
+  // --- Chat Functionality ---
+  // Make function globally available so onclick works
+  window.openChat = (name, itemDataEncoded) => {
+    const dialog = document.getElementById("chat_modal");
+    const title = document.getElementById("chat_character_name");
+    const messages = document.getElementById("chat_messages");
+    const itemData = JSON.parse(decodeURIComponent(itemDataEncoded));
+
+    // Reset chat
+    if (title) title.innerText = name;
+    if (messages)
+      messages.innerHTML = `
+      <div class="chat chat-start">
+        <div class="chat-image avatar">
+          <div class="w-10 rounded-full border border-yellow-400">
+            <img alt="${name}" src="https://pollinations.ai/p/${encodeURIComponent("star wars " + name)}?width=100&height=100&nologo=true" />
+          </div>
+        </div>
+        <div class="chat-header text-yellow-400 mb-1">
+          ${name}
+          <time class="text-xs opacity-50 ml-1 text-gray-400">Now</time>
+        </div>
+        <div class="chat-bubble bg-white/10 text-gray-200 border border-white/20">Greetings. I am ${name}. What do you seek?</div>
+      </div>
+    `;
+
+    // Store context
+    window.currentCharacterContext = `Name: ${name}. Details: ${JSON.stringify(itemData)}.`;
+    window.currentCharacterName = name;
+
+    if (dialog) dialog.showModal();
+  };
+
+  // Send Message logic
+  const chatInput = document.getElementById("chat_input");
+  const sendBtn = document.getElementById("chat_send_btn");
+
+  async function sendMessage() {
+    const msg = chatInput.value.trim();
+    if (!msg) return;
+
+    const messages = document.getElementById("chat_messages");
+
+    // User Message
+    messages.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div class="chat chat-end">
+        <div class="chat-bubble bg-yellow-400 text-black font-semibold">${msg}</div>
+      </div>
+    `
+    );
+
+    chatInput.value = "";
+    messages.scrollTop = messages.scrollHeight; // Auto scroll
+
+    // Loading state
+    const loadingId = "loading-" + Date.now();
+    messages.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div id="${loadingId}" class="chat chat-start">
+        <div class="chat-bubble bg-white/10 text-gray-400 animate-pulse">...thinking...</div>
+      </div>
+    `
+    );
+    messages.scrollTop = messages.scrollHeight;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No active session. Please login.");
+      }
+
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+
+      const response = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify({
+          character_name: window.currentCharacterName,
+          character_context: window.currentCharacterContext,
+          message: msg,
+        }),
+      });
+
+      // Remove loading
+      const loadingEl = document.getElementById(loadingId);
+      if (loadingEl) loadingEl.remove();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Session expired. Please login again.");
+        }
+        const errData = await response.json();
+        throw new Error(errData.detail || "Communication error.");
+      }
+
+      const data = await response.json();
+
+      // AI Response
+      const aiResponse =
+        data.response || "Static interference... (No response data)";
+
+      messages.insertAdjacentHTML(
+        "beforeend",
+        `
+          <div class="chat chat-start">
+            <div class="chat-image avatar">
+              <div class="w-10 rounded-full border border-yellow-400">
+                <img alt="${window.currentCharacterName}" src="https://pollinations.ai/p/${encodeURIComponent("star wars " + window.currentCharacterName)}?width=100&height=100&nologo=true" />
+              </div>
+            </div>
+            <div class="chat-header text-yellow-400 mb-1">
+              ${window.currentCharacterName}
+            </div>
+            <div class="chat-bubble bg-white/10 text-gray-200 border border-white/20">${aiResponse}</div>
+          </div>
+        `
+      );
+      messages.scrollTop = messages.scrollHeight;
+    } catch (e) {
+      console.error(e);
+      const loadingEl = document.getElementById(loadingId);
+      if (loadingEl) loadingEl.remove();
+
+      messages.insertAdjacentHTML(
+        "beforeend",
+        `
+            <div class="alert alert-error text-xs mt-2">
+                <span>${e.message || "Connection lost."}</span>
+            </div>
+        `
+      );
+      messages.scrollTop = messages.scrollHeight;
+    }
+  }
+
+  if (sendBtn) sendBtn.addEventListener("click", sendMessage);
+  if (chatInput)
+    chatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+</script>
+
+<!-- Chat Modal -->
+<dialog
+  id="chat_modal"
+  class="modal modal-bottom sm:modal-middle backdrop-blur-sm"
+>
+  <div
+    class="modal-box glass-panel border border-yellow-400/30 p-0 overflow-hidden flex flex-col max-h-[80vh]"
+  >
+    <!-- Header -->
+    <div
+      class="bg-yellow-400/10 p-4 border-b border-yellow-400/20 flex justify-between items-center"
+    >
+      <h3
+        class="font-orbitron text-xl text-yellow-400 font-bold flex items-center gap-2"
+      >
+        <Icon name="mdi:forum" class="w-6 h-6" />
+        COM-LINK: <span id="chat_character_name" class="text-white">Target</span
+        >
+      </h3>
+      <form method="dialog">
+        <button
+          class="btn btn-sm btn-circle btn-ghost text-white hover:text-red-400"
+          >✕</button
+        >
+      </form>
+    </div>
+
+    <!-- Messages -->
+    <div
+      id="chat_messages"
+      class="flex-grow p-4 overflow-y-auto min-h-[300px] space-y-4 bg-black/40"
+    >
+      <!-- Dynamic Content -->
+    </div>
+
+    <!-- Input -->
+    <div class="p-4 bg-white/5 border-t border-white/10 flex gap-2">
+      <input
+        id="chat_input"
+        type="text"
+        placeholder="Type your transmission..."
+        class="input input-bordered flex-grow bg-black/50 text-white border-yellow-400/30 focus:border-yellow-400 focus:outline-none"
+      />
+      <button
+        id="chat_send_btn"
+        class="btn bg-yellow-400 text-black hover:bg-yellow-300 border-none"
+      >
+        <Icon name="mdi:send" class="w-5 h-5" />
+      </button>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>

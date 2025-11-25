@@ -1,0 +1,143 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/forms";
+@plugin "daisyui";
+
+@theme {
+  --font-orbitron: "Orbitron", sans-serif;
+}
+
+:root {
+  --color-stars-bg: #000000;
+  --color-star-wars-yellow: #ffe81f;
+}
+
+body {
+  background-color: var(--color-stars-bg);
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+  background-size: 550px 550px, 350px 350px, 250px 250px;
+  background-position: 0 0, 40px 60px, 130px 270px;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/forms";
+@plugin "daisyui";
+
+@theme {
+  --font-orbitron: "Orbitron", sans-serif;
+}
+
+:root {
+  --color-stars-bg: #000000;
+  --color-star-wars-yellow: #ffe81f;
+}
+
+body {
+  background-color: var(--color-stars-bg);
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+  background-size: 550px 550px, 350px 350px, 250px 250px;
+  background-position: 0 0, 40px 60px, 130px 270px;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-orbitron);
+  color: var(--color-star-wars-yellow);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/forms";
+@plugin "daisyui";
+
+@theme {
+  --font-orbitron: "Orbitron", sans-serif;
+}
+
+:root {
+  --color-stars-bg: #000000;
+  --color-star-wars-yellow: #ffe81f;
+}
+
+body {
+  background-color: var(--color-stars-bg);
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+  background-size: 550px 550px, 350px 350px, 250px 250px;
+  background-position: 0 0, 40px 60px, 130px 270px;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-orbitron);
+  color: var(--color-star-wars-yellow);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+@layer utilities {
+  .glass-panel, .sw-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .input-starwars {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--color-star-wars-yellow);
+    color: var(--color-star-wars-yellow);
+  }
+
+  .input-starwars:focus {
+    outline: none;
+    box-shadow: 0 0 10px var(--color-star-wars-yellow);
+  }
+
+  .btn-starwars {
+    background-color: transparent;
+    border: 1px solid var(--color-star-wars-yellow);
+    color: var(--color-star-wars-yellow);
+    font-family: var(--font-orbitron);
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+  }
+
+  .btn-starwars:hover {
+    background-color: var(--color-star-wars-yellow);
+    color: black;
+    box-shadow: 0 0 15px var(--color-star-wars-yellow);
+  }
+
+  .sw-card {
+    @apply rounded-xl overflow-hidden transition-transform duration-300 hover:scale-105;
+  }
+
+  .sw-card-title {
+    @apply text-xl font-bold mb-2 text-yellow-400 font-orbitron;
+  }
+
+  .sw-label {
+    @apply text-xs text-gray-400 uppercase tracking-wider;
+  }
+
+  .sw-value {
+    @apply text-sm text-white font-semibold;
+  }
+}

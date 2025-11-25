@@ -2,42 +2,42 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: jedy-api-route # Name of the route
+  name: jedy-api-route
   namespace: starwars
 spec:
   parentRefs:
-  - name: infra-gateway # Attaches this route to our 'infra-gateway'
-    namespace: gateways # Specifies that the Gateway is in the 'gateways' namespace
+  - name: infra-gateway
+    namespace: gateways
   rules:
   - matches:
     - path:
         type: PathPrefix
-        value: /api # Intercepts all traffic starting with /api
+        value: /api
     filters:
     - type: URLRewrite
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefixMatch: / # Replaces /api with / before sending to the backend (e.g. /api/users -> /users)
+          replacePrefixMatch: /
     backendRefs:
-    - name: back-cluster-ip-service # Redirects to the Backend Service
+    - name: back-service
       port: 4000
 ---
 # --- Route for Frontend ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: jedy-front-route # Name of the route
+  name: jedy-front-route
   namespace: starwars
 spec:
   parentRefs:
-  - name: infra-gateway # Attaches this route to our 'infra-gateway'
-    namespace: gateways # Specifies that the Gateway is in the 'gateways' namespace
+  - name: infra-gateway
+    namespace: gateways
   rules:
   - matches:
     - path:
         type: PathPrefix
-        value: / # Intercepts all other traffic (root)
+        value: /
     backendRefs:
-    - name: front-cluster-ip-service # Redirects to the Frontend Service
-      port: 4321
+    - name: front-service
+      port: 80

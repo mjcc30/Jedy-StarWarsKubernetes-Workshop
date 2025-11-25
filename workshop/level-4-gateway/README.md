@@ -74,7 +74,7 @@ We must tell the cluster "Here is a Gateway".
 3. **Navigate to the level:**
 
     ```bash
-    cd workshop/level-3-k8s
+    cd workshop/level-4-gateway/deploy
     ```
 
 **Apply them:**
@@ -99,7 +99,7 @@ We need **HTTPRoutes** to direct the ships.
 **Apply the routes:**
 
 ```bash
-kubectl apply -f routes.yaml
+kubectl apply -f deploy/routes.yaml
 ```
 
 ---

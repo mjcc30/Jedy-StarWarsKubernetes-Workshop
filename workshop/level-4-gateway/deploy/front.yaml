@@ -1,0 +1,50 @@
+# ==========================================
+# 🎨 Frontend Deployment
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-deployment # Name of the frontend Deployment
+  namespace: starwars
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: front # Must match the label in the pod template
+  template:
+    metadata:
+      labels:
+        component: front # Must match the selector above
+    spec:
+      containers:
+        - name: client
+          image: jedy-frontend:latest  # Docker image for the frontend
+          imagePullPolicy: IfNotPresent # Use local image if available
+          ports:
+            - containerPort: 4321
+          env:
+             # In a real K8s setup, we use an Ingress/Gateway.
+             # For Level 3, we haven't set that up yet, so the Frontend
+             # might fail to reach the Backend via /api unless we proxy or hardcode.
+            - name: REACT_APP_API_ENTRYPOINT
+              value: "http://localhost:4000" 
+---
+# ==========================================
+# 🌍 Frontend Service (NodePort)
+# ==========================================
+# This exposes the Frontend to your local machine.
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-service # Name of the frontend Service
+  namespace: starwars
+spec:
+  # NodePort allows external access via a static port on the Node (your laptop).
+  # You can access it at http://localhost:30000
+  type: NodePort 
+  selector:
+    component: front # Must match the label in the Deployment
+  ports:
+    - port: 80         # The Service port (internal)
+      targetPort: 4321 # The Container port (where Astro runs)
+      nodePort: 30000  # The External port (access via browser)

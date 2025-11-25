@@ -1,0 +1,8 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: eg # Envoy GatewayClass
+  namespace: starwars
+spec:
+  # The name of the controller that manages Gateways of this class
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller

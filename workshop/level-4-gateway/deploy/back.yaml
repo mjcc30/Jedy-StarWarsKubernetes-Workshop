@@ -1,0 +1,52 @@
+# ==========================================
+# 🐍 Backend Deployment
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: back-deployment # Name of the backend Deployment
+  namespace: starwars
+spec:
+  replicas: 1 # Number of backend copies running
+  selector:
+    matchLabels:
+      component: back # Must match the label in the pod template
+  template:
+    metadata:
+      labels:
+        component: back # Must match the selector above
+    spec:
+      containers:
+        - name: server # Name of the container
+          # ⚠️ IMPORTANT:
+          # If using Docker Desktop (local images), set imagePullPolicy: Never or IfNotPresent
+          # This tells K8s to use the image you built locally with `docker build`
+          image: jedy-backend:latest # Docker image for the backend
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4000
+          env:
+            # Connect to the Database Service defined in postgres.yaml
+            # Format: postgresql://user:pass@<SERVICE_NAME>:<PORT>/<DB_NAME>
+            - name: DATABASE_URL
+              value: "postgresql://star_wars_user:star_wars_password@postgres-service:5432/star_wars"
+            - name: JWT_SECRET
+              value: "MyBestSecret"
+            - name: API_ENTRYPOINT
+              value: "https://swapi.dev/api"
+---
+# ==========================================
+# 🔌 Backend Service
+# ==========================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: back-service # Name of the backend Service
+  namespace: starwars
+spec:
+  type: ClusterIP # Internal access only
+  selector:
+    component: back # Must match the label in the Deployment
+  ports:
+    - port: 4000        # The Service port (internal)
+      targetPort: 4000 # The Container port (where Express runs)

@@ -6,6 +6,7 @@ Welcome to the **Jedy-StarWarsKubernetes** workshop. The goal of this course is 
 
 This folder contains the "Answer Key" for each level of the workshop.
 
+- `level-0-local/`: The Old way.
 - `level-1-docker/`: Dockerfiles.
 - `level-2-compose/`: Docker Compose configuration.
 - `level-3-k8s/`: Simple Kubernetes manifests.

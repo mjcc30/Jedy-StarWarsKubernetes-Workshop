@@ -12,6 +12,7 @@ This folder contains the "Answer Key" for each level of the workshop.
 - `level-3-k8s/`: Simple Kubernetes manifests.
 - `level-4-gateway/`: Expose using an API Gateway.
 - `level-5-sre/`: The final, production-ready configuration.
+- `level-6-mastery/`: Tools for the Jedi Master (Dashboard, K9s).
 
 ---
 
@@ -106,6 +107,20 @@ This folder contains the "Answer Key" for each level of the workshop.
 4. **Load Test**: Stress test the app to see it scale.
 
 👉 *Solution: `level-5-sre/`*
+
+---
+
+## Level 6: Mastery (Jedi Master)
+
+**Goal**: Equip yourself with the tools to manage the cluster efficiently.
+
+**Task**:
+
+1.  **Kubernetes Dashboard**: Install and access the GUI.
+2.  **K9s**: Master the terminal UI.
+3.  **Contexts**: Switch namespaces faster than a hyperdrive.
+
+👉 *Guide: `level-6-mastery/`*
 
 ---
 

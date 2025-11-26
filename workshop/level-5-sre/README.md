@@ -2,7 +2,7 @@
 
 > *"A Jedi uses the Force for knowledge and defense, never for attack."* — Yoda
 
-Welcome to the final trial, Master Jedi. 🧘‍♂️
+Welcome to the level 5, Jedi. 🧘‍♂️
 
 In **Level 4**, a Gateway you established. Access to the archives, we have.
 But a true Jedi Guardian protects the peace. Your infrastructure must be resilient, scalable, and secure.
@@ -408,7 +408,14 @@ You have built a cluster that is:
 
 The Archives are safe. The Galaxy is at peace.
 
-👉 *May the Force of containerization and orchestration be with you, always...*
+👉 *May the Force be with you, always.*
+
+### 🚀 Next Step: The Path of the Master
+
+You have learned the ways of the Jedy SRE. But a true Master does not rely on luck.
+To wield the Force with precision, you must equip yourself with the **Jedi Tools**.
+
+👉 **[Proceed to Level 6: The Master's Toolkit](../level-6-mastery/README.md)**
 
 ---
 

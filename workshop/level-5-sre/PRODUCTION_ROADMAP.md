@@ -7,12 +7,14 @@ This document outlines the steps required to take this project from its current 
 ### HTTPS / TLS (Critical)
 
 Currently, traffic flows over HTTP.
+
 - **Action**: Install **Cert-Manager**.
 - **Implementation**: Configure a `ClusterIssuer` (e.g., Let's Encrypt) to automatically provision and renew TLS certificates for the Envoy Gateway.
 
 ### Secret Management
 
 Secrets are currently created manually via `kubectl`.
+
 - **Action**: Adopt **GitOps** for secrets.
 - **Implementation**: Use **Sealed Secrets** or **HashiCorp Vault** to store encrypted secrets in the Git repository, which are decrypted only inside the cluster.
 
@@ -63,6 +65,7 @@ Move away from manual builds.
 ### GitOps (CD)
 
 Stop using `kubectl apply` manually.
+
 - **Action**: Automate deployment synchronization.
 - **Implementation**: Install **ArgoCD** or **Flux**.
   - These tools watch a specific "Git Configuration Repo".

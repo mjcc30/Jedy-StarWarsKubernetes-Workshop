@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-load-test # A job to run k6 load tests
+  namespace: starwars # Namespace where the job will be created
+spec:
+  template:
+    spec:
+      containers:
+      - name: k6
+        image: grafana/k6:latest # k6 Docker image
+        command: ["k6", "run", "/scripts/script.js"] # Command to run the k6 script
+        volumeMounts: # Mount the ConfigMap as a volume
+        - name: k6-script-volume # Volume name
+          mountPath: /scripts # Mount path inside the container
+      restartPolicy: Never
+      volumes:
+      - name: k6-script-volume # Volume definition
+        configMap:
+          name: k6-script # Name of the ConfigMap containing the k6 script
+  backoffLimit: 4 # Number of retries before considering the job as failed

@@ -113,6 +113,87 @@ kubectl get pods -n starwars
 
 ---
 
+## 📜 Step 4: The Log Hunter (Stern)
+
+`kubectl logs` is limited. **Stern** allows you to tail multiple pods and containers simultaneously, with color-coded output.
+
+**Install:**
+
+- **Mac**: `brew install stern`
+- **Windows**: `choco install stern`
+- **Linux**: [Check releases](https://github.com/stern/stern)
+
+**Usage:**
+Tail all pods in the `starwars` namespace:
+
+```bash
+stern -n starwars .
+```
+
+Tail only the backend pods:
+
+```bash
+stern -n starwars back
+```
+
+---
+
+## 🩺 Step 5: The Cluster Sanitizer (Popeye)
+
+A Jedi keeps their ship clean. **Popeye** scans your cluster for misconfigurations (missing probes, resource limits, etc.) and gives you a score.
+
+**Install:**
+
+- **Mac**: `brew install derailed/popeye/popeye`
+- **Windows**: `choco install popeye`
+- **Linux**: [Check releases](https://github.com/derailed/popeye)
+
+**Scan:**
+
+```bash
+popeye -n starwars
+```
+
+---
+
+## ⚡ Step 6: Force Speed (Aliases)
+
+Typing `kubectl` takes too long. A Master uses shorthand.
+
+**Add to your shell profile (`.bashrc` or `.zshrc`):**
+
+```bash
+alias k=kubectl
+alias kg="kubectl get"
+alias kd="kubectl describe"
+alias kdel="kubectl delete"
+alias klogs="kubectl logs"
+```
+
+**Usage:**
+
+```bash
+k get pods
+klogs -f my-pod
+```
+
+---
+
+## 📚 The Holocron of Knowledge
+
+Even a Master must continue to learn.
+If you seek further wisdom in the French language, consult the archives of **Master Stéphane Robert**.
+
+👉 **[blog.stephane-robert.info](https://blog.stephane-robert.info/docs/)**
+
+He teaches the ways of:
+
+- **Kustomize**: An alternative to Helm for managing configuration overlays.
+- **Sealed Secrets**: Encrypting secrets so they can be stored in Git.
+- **DevSecOps**: Securing the galaxy supply chain.
+
+---
+
 ## 🏆 Conclusion
 
 You are now fully equipped.

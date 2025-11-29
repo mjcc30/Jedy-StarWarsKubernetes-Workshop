@@ -1,0 +1,54 @@
+name: Jedy CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # 🐍 Backend Testing
+  test-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./workshop/app/back
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.14'
+        
+    - name: Install Dependencies
+      run: |
+        pip install uv
+         uv pip install --system -r pyproject.toml
+        
+    - name: Run Tests
+      run: |
+        # We simulate a test since we don't have a real DB in CI easily without Service Containers
+        # In a real pipeline, you would use `services: postgres`
+        echo "Running Pytest..."
+        pytest
+
+  # 🎨 Frontend Build
+  build-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./workshop/app/front
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '24'
+        
+    - name: Install Dependencies
+      run: npm install
+      
+    - name: Build Astro
+      run: npm run build

@@ -1,0 +1,101 @@
+name: Release CI/CD
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  # Replace with your Docker Hub username or set via Secret
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  # Images names
+  BACK_IMAGE_NAME: jedy-starwarskubernetes-back
+  FRONT_IMAGE_NAME: jedy-starwarskubernetes-front
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: star_wars
+          POSTGRES_USER: star_wars_user
+          POSTGRES_PASSWORD: star_wars_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        working-directory: workshop/app/back
+        run: |
+          uv pip install --system -r requirements.txt
+          uv pip install --system pytest httpx
+
+      - name: Create .env file
+        working-directory: workshop/app/back
+        run: |
+          echo "DATABASE_URL=postgresql://star_wars_user:star_wars_password@localhost:5432/star_wars" > .env
+          echo "API_ENTRYPOINT=https://swapi.dev/api" >> .env
+          echo "JWT_SECRET=super_secret_ci_key" >> .env
+          # echo "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" >> .env
+
+      - name: Run Tests
+        working-directory: workshop/app/back
+        run: pytest
+
+  build-and-push:
+    needs: test-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Backend Build & Push
+      - name: Build and push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: workshop/app/back
+          # Pointing to the Level 3 Dockerfile (Production)
+          file: workshop/level-3-k8s/Dockerfile.back.prod
+          push: true
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/${{ env.BACK_IMAGE_NAME }}:latest
+            ${{ env.DOCKER_USERNAME }}/${{ env.BACK_IMAGE_NAME }}:${{ github.ref_name }}
+
+      # Frontend Build & Push
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: workshop/app/front
+          # Pointing to the Level 3 Dockerfile (Production)
+          file: workshop/level-3-k8s/Dockerfile.front.prod
+          push: true
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/${{ env.FRONT_IMAGE_NAME }}:latest
+            ${{ env.DOCKER_USERNAME }}/${{ env.FRONT_IMAGE_NAME }}:${{ github.ref_name }}

@@ -61,6 +61,11 @@ To know your standing, consult the `TODO.md` holocron within each level.
 * **Mission**: Monitoring and control with Dashboards and K9s.
 * **Lesson**: Total awareness of the cluster.
 
+### **Level 7: The Automator (CI/CD & GitOps)**
+
+* **Mission**: Automate build and deployment.
+* **Lesson**: GitOps and Pipelines.
+
 ## 🛠️ The Tech Stack (Our Light Sabers)
 
 * **Backend**: Python 3.14 (The Serpent) with FastAPI.

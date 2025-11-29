@@ -51,7 +51,7 @@ deploy: ns
     kubectl apply -f workshop/level-5-sre/deploy/front.yaml
     @echo "🛣️  Deploying Routes..."
     kubectl apply -f workshop/level-5-sre/deploy/routes.yaml
-    kubectl apply -f workshop/level-5-sre/deploy/dashboard-route.yaml
+    kubectl apply -f workshop/level-6-mastery/deploy/dashboard-route.yaml
     @echo "✅ Done! Access via http://localhost"
 
 # Delete all Kubernetes resources

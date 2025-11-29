@@ -1,0 +1,49 @@
+# ==========================================
+# 🐍 Backend V2 (Canary)
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: back-v2-deployment
+  namespace: starwars
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: back-v2
+  template:
+    metadata:
+      labels:
+        app: back-v2
+    spec:
+      containers:
+        - name: server
+          image: jedy-backend:v2 # Requires v2 tag from Level 3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4000
+          env:
+            - name: VERSION
+              value: "v2"
+            - name: DATABASE_URL
+              value: "postgresql://star_wars_user:star_wars_password@postgres-service:5432/star_wars"
+            - name: JWT_SECRET
+              value: "MyBestSecret"
+            - name: SWAPI_ENTRYPOINT
+              value: "https://swapi.dev/api"
+---
+# ==========================================
+# 🔌 Backend V2 Service
+# ==========================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: back-v2-service
+  namespace: starwars
+spec:
+  type: ClusterIP
+  selector:
+    app: back-v2
+  ports:
+    - port: 4000
+      targetPort: 4000

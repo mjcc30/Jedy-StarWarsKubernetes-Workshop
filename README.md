@@ -20,9 +20,9 @@ The workshop is structured into progressive levels, each building upon the last:
 * **Level 2: The Assembly (Docker Compose)**: Orchestrate containers locally.
 * **Level 3: The Cluster (Kubernetes Basics)**: Deploy to a Kubernetes cluster using Manifests.
 * **Level 4: The Gateway (Advanced Networking)**: Control access with Gateway API.
-*   **Level 5: The Guardian (SRE & Production)**: Ensure reliability with Probes, HPA, and StatefulSets.
-*   **Level 6: Mastery (Tools)**: Monitoring and control with Dashboards and K9s.
-*   **Level 7: The Automator (CI/CD & GitOps)**: Automate the flow with GitHub Actions and ArgoCD.
+* **Level 5: The Guardian (SRE & Production)**: Ensure reliability with Probes, HPA, and StatefulSets.
+* **Level 6: Mastery (Tools)**: Monitoring and control with Dashboards and K9s.
+* **Level 7: The Automator (CI/CD & GitOps)**: Automate the flow with GitHub Actions and ArgoCD.
 
 **Begin your journey**: Navigate to the `workshop/` directory to start your training.
 
@@ -35,9 +35,69 @@ This special file, `GEMINI.md`, serves as the memory of our training sessions wi
 * **Backend**: Python 3.14 with FastAPI
 * **Frontend**: Astro with Node.js
 * **Database**: PostgreSQL
-* **Infrastructure**: Docker, Kubernetes, Gateway API
+*   **Infrastructure**: Docker, Kubernetes, Gateway API
 
-May the Force be with you, young Padawan.
+## 🏛️ The Architecture (Level 5+)
+
+```
+      [ User / Browser ]
+              |
+          HTTP :80
+              |
+              v
+    +-------------------+
+    |   Envoy Gateway   |
+    +---------+---------+
+              |
+      +-------+-------+
+      |               |
+  Route /api       Route /
+      |               |
+      v               v
+ [ Backend Svc ]  [ Frontend Svc ]
+      |               |
+      v               v
+ [ Backend Pod ]  [ Frontend Pod ]
+      |
+  TCP :5432
+      |
+      v
+ [ Postgres Svc ]
+      |
+      v
+ [ Postgres Pod ]
+```
+
+## 🤖 The GitOps Architecture (Level 7)
+
+```
+      [ Developer ]
+            |
+        git push
+            |
+            v
+      [ GitHub Repo ] <----.
+            |              |
+      (GitHub Action)      | (Sync)
+      Build & Test         |
+            |              |
+            v              |
+      [ Docker Hub ]       |
+            |              |
+            |              |
+            v              |
+    +-------+--------------+-------+
+    | Kubernetes Cluster           |
+    |                              |
+    |   [ ArgoCD Controller ] -----+
+    |          |
+    |       (Apply)
+    |          |
+    |          v
+    |   [ Apps (Back/Front) ]
+    |                              |
+    +------------------------------+
+```
 
 ## 🚀 Using the Gemini AI Instructor (CLI)
 

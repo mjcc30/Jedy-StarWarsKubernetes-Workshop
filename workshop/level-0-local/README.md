@@ -2,7 +2,7 @@
 
 Welcome to the course, young Padawan! 👨‍🏫
 
-We are going to learn to master the Force... of Kubernetes. But before we run, we must learn to walk. Your first mission is to run this application the "old school" way, directly on your machine, without any containers. This will help you understand why we use Docker later.
+We are going to learn to master the Force... of Kubernetes. But before we run, we must learn to walk. Your first mission is to run this application the "old empire" way, directly on your machine, without any containers. This will help you understand why we use Docker later.
 
 Start by going to your workspace:
 
@@ -10,7 +10,7 @@ Start by going to your workspace:
 cd workshop/level-0-local
 ```
 
-Open the `TODO.md` file to see your roadmap, but here is your first task.
+👉 **[TODO](TODO.md)** to see your roadmap & track your progress.
 
 ---
 
@@ -18,7 +18,8 @@ Open the `TODO.md` file to see your roadmap, but here is your first task.
 
 Without a database, the API cannot store anything.
 
-**Important clarification**: **DBeaver** is an excellent tool, it is like the **dashboard** of your spaceship. But to fly, you also need the **engine**!
+**Important clarification**: **DBeaver** is an excellent tool, it is like the **dashboard** of your spaceship.  
+But to fly, you also need the **engine**!
 
 - **PostgreSQL** is the engine (the database server).
 - **DBeaver** is the interface (the client to talk to the server).
@@ -31,7 +32,7 @@ If you are on Windows/Mac/Linux, download the official installer here:
 👉 [Download PostgreSQL](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads)
 
 - Launch the installation.
-- **Important**: You will be asked for a password for the "superuser" (often `postgres`). **Remember it well!** (set it to `admin` or `postgres` if it's just for learning, it will save you headaches).
+- **Important**: You will be asked for a password for the "superuser" (often `postgres`). **Remember it well!** (set it to `postgres` if it's just for learning, it will save you headaches !).
 - Leave the default port (`5432`).
 
 ### 2️⃣ Install the Interface (DBeaver)
@@ -66,10 +67,10 @@ Once both are installed:
 
 Now that the database is ready, let's start the engine.
 
-1. Navigate to the backend folder:
+1. Navigate to the backend folder (located in the shared `app` directory):
 
     ```bash
-    cd back
+    cd ../app/back
     ```
 
 2. Create .env:
@@ -77,7 +78,7 @@ Now that the database is ready, let's start the engine.
     ```bash
     DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/postgres
     JWT_SECRET=your_jwt_secret_key
-    API_ENTRYPOINT=https://swapi.dev/api
+    SWAPI_ENTRYPOINT=https://swapi.dev/api
     # OPENAI_API_KEY=your_openai_api_key
     # GOOGLE_API_KEY=your_google_api_key
     # OPENROUTER_API_KEY=your_google_api_key
@@ -129,7 +130,8 @@ Finally, let's launch the cockpit.
 1. Open a **new terminal** and navigate to the frontend folder:
 
     ```bash
-    cd workshop/level-0-local/front
+    # Assuming you are starting from workshop/level-0-local
+    cd ../app/front
     ```
 
 2. Install dependencies:
@@ -144,10 +146,8 @@ Finally, let's launch the cockpit.
     npm run dev
     ```
 
-    > The website should be available at `http://localhost:4321`
-
 4. Try login
-    > `http://localhost:4321/login`
+    `http://localhost:4321/login`
 
 ---
 
@@ -155,8 +155,11 @@ Finally, let's launch the cockpit.
 
 Go to `http://localhost:4321/register` and try to create an account.
 
-- If it works, your Frontend can talk to your Backend, and your Backend can talk to your Database.
-- **Congratulations!** You are ready for Level 1.
+If it works, your Frontend can talk to your Backend, and your Backend can talk to your Database.
+
+**Congratulations!** You are ready for Level 1.
+
+👉 **[Proceed to Level 1: Containerization](../level-1-docker/README.md)**
 
 ---
 
@@ -181,12 +184,12 @@ If you encounter weird errors or dependency issues, try a "clean slate":
 
 **Database or Environment Issues?**
 
-- Ensure you created the `.env` file in the `back/` directory with all required variables:
+- Ensure you created the `.env` file in the `app/back/` directory with all required variables:
 
   ```env
   DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/postgres
   JWT_SECRET=your_jwt_secret_key
-  API_ENTRYPOINT=https://swapi.dev/api
+  SWAPI_ENTRYPOINT=https://swapi.dev/api
   ```
 
 - Check that `DATABASE_URL` matches your local PostgreSQL credentials (user, password, port).
@@ -203,7 +206,7 @@ This can happen on Windows or with specific Node.js versions.
 **Frontend can't connect to Backend?**
 
 - Ensure the Backend is running on port `4000`.
-- Check `front/astro.config.mjs` and ensure the proxy target is set to `localhost`:
+- Check `app/front/astro.config.mjs` and ensure the proxy target is set to `localhost`:
 
   ```javascript
   proxy: {

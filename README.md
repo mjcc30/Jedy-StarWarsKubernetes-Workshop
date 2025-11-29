@@ -20,8 +20,9 @@ The workshop is structured into progressive levels, each building upon the last:
 * **Level 2: The Assembly (Docker Compose)**: Orchestrate containers locally.
 * **Level 3: The Cluster (Kubernetes Basics)**: Deploy to a Kubernetes cluster using Manifests.
 * **Level 4: The Gateway (Advanced Networking)**: Control access with Gateway API.
-* **Level 5: The Guardian (SRE & Production)**: Ensure reliability with Probes, HPA, and StatefulSets.
-* **Level 6: Mastery (Tools)**: Monitoring and control with Dashboards and K9s.
+*   **Level 5: The Guardian (SRE & Production)**: Ensure reliability with Probes, HPA, and StatefulSets.
+*   **Level 6: Mastery (Tools)**: Monitoring and control with Dashboards and K9s.
+*   **Level 7: The Automator (CI/CD & GitOps)**: Automate the flow with GitHub Actions and ArgoCD.
 
 **Begin your journey**: Navigate to the `workshop/` directory to start your training.
 

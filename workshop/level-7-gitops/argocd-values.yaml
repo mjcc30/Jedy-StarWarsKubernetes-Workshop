@@ -1,0 +1,37 @@
+# Optimized values for local workshop
+# We reduce replicas to save resources on your laptop.
+
+configs:
+  params:
+    # Disable internal TLS (HTTP only)
+    server.insecure: "true"
+
+redis-ha:
+  enabled: false
+
+controller:
+  replicas: 1
+
+server:
+  replicas: 1
+  # Serve under /argocd (Required for Gateway Path routing)
+  extraArgs:
+    - --rootpath=/argocd
+  
+  # Configure Gateway API Route automatically
+  httproute:
+    enabled: true
+    parentRefs:
+      - name: infra-gateway
+        namespace: gateways
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /argocd
+
+repoServer:
+  replicas: 1
+
+applicationSet:
+  replicas: 1

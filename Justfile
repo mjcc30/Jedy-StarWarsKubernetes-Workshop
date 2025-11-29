@@ -128,6 +128,12 @@ load-test:
     kubectl logs -n starwars -f job/k6-load-test
     @echo "✅ Test finished! Check HPA status."
 
+# 💥 Nuke Everything (Clean Slate)
+reset-all:
+    @echo "⚠️  WARNING: Destroying ALL Workshop Resources (Starwars, Gateways, ArgoCD, Dashboard)..."
+    kubectl delete ns starwars gateways argocd envoy-gateway-system kubernetes-dashboard --ignore-not-found=true
+    @echo "🌌 The Galaxy is empty."
+
 # Stop/Clean the Load Test
 stop-load:
     kubectl delete job k6-load-test -n starwars --ignore-not-found=true
@@ -142,3 +148,21 @@ logs-back:
 # Tail Frontend Logs
 logs-front:
     kubectl logs -n starwars -l component=front -f --tail=100
+
+# Tail Database Logs
+logs-db:
+    kubectl logs -n starwars -l component=postgres -f --tail=100
+
+# --- Shell Access ---
+
+# Open shell in Backend Pod
+shell-back:
+    kubectl exec -it -n starwars deploy/back-deployment -- sh
+
+# Open shell in Frontend Pod
+shell-front:
+    kubectl exec -it -n starwars deploy/front-deployment -- sh
+
+# Open shell in Database Pod
+shell-db:
+    kubectl exec -it -n starwars statefulset/postgres-statefulset -- sh

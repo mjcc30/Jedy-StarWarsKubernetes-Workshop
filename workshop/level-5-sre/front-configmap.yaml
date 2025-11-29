@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap # Non-sensitive configuration for the application
-metadata:
-  name: front-configmap # ConfigMap for frontend settings
-  namespace: starwars
-data:
-  # --- Frontend Configuration ---
-  REACT_APP_API_ENTRYPOINT: "/api"

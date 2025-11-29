@@ -14,23 +14,24 @@ services:
 
   back:
     build:
-      context: ./back # Build context for the back service
+      context: ../app/back # Build context for back service
+      dockerfile: ../../level-1-docker/Dockerfile.back # Dockerfile for back service
     ports:
       - "4000:4000" # Map host port 4000 to container port 4000
-    restart: "on-failure" 
+    restart: "on-failure" # Restart policy.
     volumes:
-      - ./back:/app # Map local back directory to /app in the container
+      - ../app/back:/app # Map local back directory to /app in the container
     depends_on:
       - database # Ensure database starts before back
     environment:
       - DATABASE_URL=postgresql://star_wars_user:star_wars_password@database:5432/star_wars # Database connection URL
-      - API_ENTRYPOINT=https://swapi.dev/api # External API endpoint
+      - SWAPI_ENTRYPOINT=https://swapi.dev/api # External API endpoint
       - JWT_SECRET=MyBestSecret # JWT secret for authentication
 
   front:
     build:
-      context: ./front # Build context for the front service
-      dockerfile: Dockerfile # Specify Dockerfile for front
+      context: ../app/front # Build context for front service
+      dockerfile: ../../level-1-docker/Dockerfile.front # Dockerfile for front service
     restart: "on-failure"
     tty: true # Allocate a pseudo-TTY
     stdin_open: true # Keep stdin open
@@ -40,8 +41,11 @@ services:
     ports:
       - "4321:4321" # Map host port 4321 to container port 4321
     environment:
-      - REACT_APP_API_ENTRYPOINT=http://localhost:4000 # Back service endpoint
+      - API_URL=http://back:4000 # Back service endpoint
     command: npm run dev -- --host # Run front in development mode
+    volumes:
+      - ../app/front:/app # Map local front directory to /app in the container
+      - /app/node_modules # Ensure local node_modules is not overwritten
     depends_on:
       - back # Ensure back starts before front
 

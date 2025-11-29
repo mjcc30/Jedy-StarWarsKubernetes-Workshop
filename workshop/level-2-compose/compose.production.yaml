@@ -1,0 +1,18 @@
+services:
+  back:
+    build:
+      context: ../app/back
+      dockerfile: ../../level-2-compose/Dockerfile.back.prod
+    volumes: 
+     [] # Disable volume mapping for production
+
+  front:
+    build:
+      context: ../app/front # Build context for the front service
+      dockerfile: ../../level-1-docker/Dockerfile.front # Specify Dockerfile for front
+    ports:
+      - "8080:4321" # Map host port 4321 to container port 4321
+    environment:
+      - API_URL=http://back:4000 # Frontend connects to the backend service
+    volumes: 
+     [] # Disable volume mapping for production

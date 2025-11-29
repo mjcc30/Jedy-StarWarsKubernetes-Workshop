@@ -2,7 +2,7 @@
 
 > *"Control, control, you must learn control!"* — Yoda
 
-Welcome back, young Padawan! 🧘‍♂️
+Welcome back, young one! 🧘‍♂️
 
 In **Level 1**, you felt the pain of the "manual way". You typed long commands, managed networks by hand, and felt the disturbance when services couldn't talk to each other.
 
@@ -51,6 +51,10 @@ You are now at the root of the project. A `compose.yaml` file is ready.
     docker compose up --build
     ```
 
+    > **Wisdom**: Why didn't we specify the file?
+    >
+    > `docker compose` automatically looks for a file named `compose.yaml` (or `docker-compose.yml`) in the current directory. Convenient, it is.
+
     - `--build`: Forces a rebuild of the images (crucial if you changed code).
     - > *Tip: Add `-d` to run in "Detached" (background) mode.*
 
@@ -91,6 +95,54 @@ You are now at the root of the project. A `compose.yaml` file is ready.
 
 ---
 
+### 🚀 Step 3.5: Previewing in Production Mode
+
+Before deploying to the vastness of Kubernetes, wise it is to see our fleet in a production-like setting. We can use a combination of our `compose.yaml` (for the base services like the database) and a specialized `compose.production.yaml` to override the development settings with production ones.
+
+1. **Shut down your current development stack (if running):**
+
+    ```bash
+    docker compose down
+    ```
+
+2. **Launch the Production Preview:**
+
+    From the `workshop/level-2-compose` directory, execute:
+
+    ```bash
+    docker compose -f compose.yaml -f compose.production.yaml up --build
+    ```
+
+    - **`-f compose.yaml`**: Loads our base development configuration.
+    - **`-f compose.production.yaml`**: Overrides parts of `compose.yaml` with production-specific settings (like using `Dockerfile.prod` for backend and removing hot-reloading volumes).
+    - **`--build`**: Ensures fresh images are built using the specified Dockerfiles.
+
+3. **Verify and Test:**
+    Access [http://localhost:4321](http://localhost:4321) and test the application as you would in development. The behavior should be similar, but now running with production optimized images.
+
+---
+
+## 🧠 Pro Tip: Develop in the Container (DevContainers)
+
+To ensure a consistent development environment for all Padawans, across all operating systems, the wisdom of **DevContainers** can be applied.
+
+Imagine: Your development tools, dependencies, and even your IDE settings, all encapsulated within a Docker container. No more "it works on my machine" excuses!
+
+**How to use DevContainers (with VS Code):**
+
+1. **Install VS Code**: If you have not already, install Visual Studio Code.
+2. **Install the 'Dev Containers' extension**: Search for and install the "Dev Containers" extension in VS Code.
+3. **Open Project in Container**: 
+    - In VS Code, open the command palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
+    - Search for and select: `Dev Containers: Reopen in Container`.
+    - VS Code will detect the `compose.yaml` file in this directory and offer to build and connect to it.
+
+Once connected, your VS Code terminal will be running directly inside the Docker Compose environment. All your `npm install`, `pip install`, and `uvicorn` commands will execute within the containers, using the exact versions defined in the Dockerfiles.
+
+*This is the way to achieve true development environment harmony.*
+
+---
+
 ## 🧠 Service Discovery
 
 Look at this line in `compose.yaml`:
@@ -99,11 +151,11 @@ Look at this line in `compose.yaml`:
 DATABASE_URL=postgresql://...@database:5432/...
 ```
 
-In **Level 1**, we had to use `host.docker.internal` or `--network host`.
-In **Level 2**, we just use `database`.
+In **Level 1**, we had to manually create a network (`docker network create`) and assign an alias (`--network-alias database`).
+In **Level 2**, we just use the service name `database` in `compose.yaml`.
 
 **Why?**
-Docker Compose creates an internal **DNS**. When the Backend asks for "database", Docker resolves it to the internal IP of the database container. This is the power of Orchestration.
+Docker Compose automatically creates a **Network** and handles the **DNS**. Every service can reach any other service by its name. It brings order to the chaos.
 
 ---
 
@@ -124,7 +176,8 @@ docker compose down -v
 **Congratulations!** You have mastered Local Orchestration.
 You are now ready for **Level 3**, where we leave the safety of our local machine and enter the vastness of **Kubernetes**.
 
-👉 *Proceed you must.*
+*Proceed you must.*
+👉 **[Level 3: Kubernetes Basics (Kubernaut)](../level-3-k8s/README.md)**
 
 ---
 

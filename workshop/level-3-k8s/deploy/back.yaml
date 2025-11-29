@@ -10,11 +10,11 @@ spec:
   replicas: 1 # Number of backend copies running
   selector:
     matchLabels:
-      component: back # Must match the label in the pod template
+      app: back # Must match the label in the pod template
   template:
     metadata:
       labels:
-        component: back # Must match the selector above
+        app: back # Must match the selector above
     spec:
       containers:
         - name: server # Name of the container
@@ -32,7 +32,7 @@ spec:
               value: "postgresql://star_wars_user:star_wars_password@postgres-service:5432/star_wars"
             - name: JWT_SECRET
               value: "MyBestSecret"
-            - name: API_ENTRYPOINT
+            - name: SWAPI_ENTRYPOINT
               value: "https://swapi.dev/api"
 ---
 # ==========================================
@@ -46,7 +46,9 @@ metadata:
 spec:
   type: ClusterIP # Internal access only
   selector:
-    component: back # Must match the label in the Deployment
+    app: back # Must match the label in the Deployment
   ports:
-    - port: 4000
-      targetPort: 4000
+    - name: http # Name of the port
+      protocol: TCP # Protocol used
+      port: 4000 # Service port
+      targetPort: 4000 # Target port on the pod

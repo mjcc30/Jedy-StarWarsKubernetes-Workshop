@@ -1,5 +1,7 @@
 # 🎓 Level 0: The Setup (Neophyte)
 
+> *"You have taken your first step into a larger world."* — Obi-Wan Kenobi
+
 Welcome to the course, young Padawan! 👨‍🏫
 
 We are going to learn to master the Force... of Kubernetes. But before we run, we must learn to walk. Your first mission is to run this application the "old empire" way, directly on your machine, without any containers. This will help you understand why we use Docker later.

@@ -2,7 +2,8 @@
 
 > *"Everything is proceeding as I have foreseen."* — The Emperor
 
-Welcome to the final trial.
+Welcome to the final level, Master. 🧘‍♂️
+
 Here, we stop typing `kubectl apply`. We let the robots do the work.
 
 **Your Mission:**
@@ -16,6 +17,18 @@ We must start with a clean slate. Destroy the old ways.
 
 ```bash
 kubectl delete ns starwars argocd gateways envoy-gateway-system --ignore-not-found=true
+```
+
+---
+
+## 🔐 Step 0.5: The Keys (Secrets)
+
+ArgoCD will manage our applications, but we shouldn't store raw passwords in Git. We must create the secrets manually (or use a tool like Sealed Secrets).
+
+```bash
+kubectl create ns starwars
+kubectl create -n starwars secret generic jwt-secret --from-literal=JWT_SECRET=MyBestSecret
+kubectl create -n starwars secret generic pgpassword --from-literal=PGPASSWORD=star_wars_password
 ```
 
 ---
@@ -143,7 +156,7 @@ Finally, we deploy our Star Wars stack using GitOps.
 3. **Verify:**
     - Check ArgoCD UI. You should see `starwars-app` syncing.
     - Go to [starwars-app](http://localhost/argocd/applications/argocd/starwars-app).
-    - Wait for sync 
+    - Wait for Healthy and Synced application.
     - Check the app: [http://localhost](http://localhost) (Frontend).
 
 ---
@@ -152,16 +165,18 @@ Finally, we deploy our Star Wars stack using GitOps.
 
 GitOps ensures the cluster always matches Git. If we delete something manually, ArgoCD should fix it.
 
-1.  **Destroy the App:**
+1. **Destroy the App:**
+
     ```bash
     kubectl delete deployment back-deployment -n starwars
     ```
 
-2.  **Watch the Resurrection:**
-    - Go to ArgoCD UI.
+2. **Watch the Resurrection:**
+    - Go to [starwars-app](http://localhost/argocd/applications/argocd/starwars-app).
     - It might say "OutOfSync".
     - Click **Sync** (or wait for auto-sync if enabled).
     - The deployment reappears!
+    - Wait for Healthy and Synced application.
 
 **You have mastered the Loop.**
 

@@ -2,7 +2,7 @@
 
 > *"Always more to learn, there is."* — Yoda
 
-Welcome to the final level, Master. 🧘‍♂️
+Welcome to the level 5, Master. 🧘‍♂️
 
 You have built a resilient, scalable production cluster. But a true Master does not struggle with raw YAMLs and manual commands daily. They use **Tools** to extend their perception and speed.
 
@@ -270,6 +270,7 @@ A true Master works efficiently. To speed up your training, we have provided a *
 It is located at the **root of the repository** (`/Jedy-StarWarsKubernetes-Workshop/Justfile`). It aggregates the commands you learned in all previous levels into simple shortcuts.
 
 **Inspect the Holocron:**
+
 ```bash
 cat ../../Justfile
 ```
@@ -321,3 +322,12 @@ You are now fully equipped.
 **The Galaxy is yours to protect.**
 
 👉 *This is the way.*
+
+---
+
+### 🚀 The Final Trial
+
+**Afraid of the Dark Side (Manual Deployments), are you?**
+Then you must master the Automator.
+
+👉 **[Proceed to Level 7: The Automator (GitOps)](../level-7-gitops/README.md)**

@@ -27,6 +27,10 @@ jobs:
          uv pip install --system -r pyproject.toml
         
     - name: Run Tests
+      env:
+        DATABASE_URL: postgresql://user:pass@localhost:5432/db
+        API_ENTRYPOINT: https://swapi.dev/api
+        JWT_SECRET: test_secret
       run: |
         # We simulate a test since we don't have a real DB in CI easily without Service Containers
         # In a real pipeline, you would use `services: postgres`

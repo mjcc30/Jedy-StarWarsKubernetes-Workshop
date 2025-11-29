@@ -20,23 +20,9 @@ This folder contains the "Answer Key" for each level of the workshop.
 
 **Goal**: Run the application locally using language tools.
 
-1. **Backend**:
+For **Database** you need a local Postgres running manually.
 
-    ```bash
-    cd back
-    pip install -r requirements.txt
-    uvicorn app.main:app --reload
-    ```
-
-2. **Frontend**:
-
-    ```bash
-    cd front
-    npm install
-    npm run dev
-    ```
-
-3. **Database**: You need a local Postgres running manually.
+👉 **[Level 0: The Setup (Neophyte)](level-0-local/README.md)**
 
 ---
 
@@ -46,14 +32,14 @@ This folder contains the "Answer Key" for each level of the workshop.
 
 **Task**: Write a `Dockerfile` for both `back` and `front`.
 
-- **Backend**: Use `python:3.11-slim`, install dependencies, expose port 4000.
-- **Frontend**: Use `node:20-alpine`, build the Astro app, expose port 4321.
+- **Backend**: Use `python:3.14-slim`, install dependencies, expose port 4000.
+- **Frontend**: Use `node:24-alpine`, build the Astro app, expose port 4321.
 
-👉 *Solution: `level-1-docker/`*
+👉 **[Level 1: Containerization (Dockerizer)](level-1-docker/README.md)**
 
 ---
 
-## Level 2: Orchestration (Composer)
+## Level 2: Orchestration (Compose)
 
 **Goal**: Connect the containers together easily.
 
@@ -63,7 +49,7 @@ This folder contains the "Answer Key" for each level of the workshop.
 - Use `depends_on` to manage startup order.
 - Connect them using Environment Variables (`DATABASE_URL`).
 
-👉 *Solution: `level-2-compose/`*
+👉 **[Level 2: Orchestration (Compose)](level-2-compose/README.md)**
 
 ---
 
@@ -77,7 +63,7 @@ This folder contains the "Answer Key" for each level of the workshop.
 - Create 3 Services to expose them internally (`ClusterIP`) or externally (`NodePort`).
 - Apply them using `kubectl apply -f .`.
 
-👉 *Solution: `level-3-k8s/`*
+👉 **[Level 3: Kubernetes Basics (Kubernaut)](level-3-k8s/README.md)**
 
 ---
 
@@ -91,7 +77,7 @@ This folder contains the "Answer Key" for each level of the workshop.
 - Create a `Gateway` resource listening on port 80.
 - Create `HTTPRoute` resources to route `/api` to the backend and `/` to the frontend.
 
-👉 *Solution: `level-4-gateway/`*
+👉 **[Level 4: Advanced Networking (Architect)](level-4-gateway/README.md)**
 
 ---
 
@@ -106,21 +92,21 @@ This folder contains the "Answer Key" for each level of the workshop.
 3. **Autoscaling**: Install Metrics Server and configure `HorizontalPodAutoscaler` (HPA).
 4. **Load Test**: Stress test the app to see it scale.
 
-👉 *Solution: `level-5-sre/`*
+👉 **[Level 5: Production Grade (SRE)](level-5-sre/README.md)**
 
 ---
 
-## Level 6: Mastery (Jedi Master)
+## Level 6: The Master's Toolkit
 
 **Goal**: Equip yourself with the tools to manage the cluster efficiently.
 
 **Task**:
 
-1.  **Kubernetes Dashboard**: Install and access the GUI.
-2.  **K9s**: Master the terminal UI.
-3.  **Contexts**: Switch namespaces faster than a hyperdrive.
+1. **Kubernetes Dashboard**: Install and access the GUI.
+2. **K9s**: Master the terminal UI.
+3. **Contexts**: Switch namespaces faster than a hyperdrive.
 
-👉 *Guide: `level-6-mastery/`*
+👉 **[Level 6: The Master's Toolkit](level-6-mastery/README.md)**
 
 ---
 

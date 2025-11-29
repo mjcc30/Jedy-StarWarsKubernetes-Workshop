@@ -10,11 +10,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      component: front # Must match the label in the pod template
+      app: front # Must match the label in the pod template
   template:
     metadata:
       labels:
-        component: front # Must match the selector above
+        app: front # Must match the selector above
     spec:
       containers:
         - name: client
@@ -26,25 +26,26 @@ spec:
              # In a real K8s setup, we use an Ingress/Gateway.
              # For Level 3, we haven't set that up yet, so the Frontend
              # might fail to reach the Backend via /api unless we proxy or hardcode.
-            - name: REACT_APP_API_ENTRYPOINT
+            - name: API_URL
               value: "http://localhost:4000" 
 ---
 # ==========================================
-# 🌍 Frontend Service (NodePort)
+# 🌍 Frontend Service
 # ==========================================
-# This exposes the Frontend to your local machine.
+# This exposes the Frontend internally within the cluster.
 apiVersion: v1
 kind: Service
 metadata:
   name: front-service # Name of the frontend Service
   namespace: starwars
 spec:
-  # NodePort allows external access via a static port on the Node (your laptop).
-  # You can access it at http://localhost:30000
-  type: NodePort 
+  # ClusterIP is the default. It gives an internal IP.
+  # To access it from outside, we will use 'kubectl port-forward'.
+  type: ClusterIP 
   selector:
-    component: front # Must match the label in the Deployment
+    app: front # Must match the label in the Deployment
   ports:
-    - port: 80         # The Service port (internal)
-      targetPort: 4321 # The Container port (where Astro runs)
-      nodePort: 30000  # The External port (access via browser)
+    - name: http # Name of the port
+      protocol: TCP # Protocol used
+      port: 4321 # Service port
+      targetPort: 4321 # Target port on the pod

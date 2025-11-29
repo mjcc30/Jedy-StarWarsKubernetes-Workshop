@@ -44,11 +44,15 @@ kubectl create -n starwars secret generic pgpassword --from-literal=PGPASSWORD=s
 
 **Verify the Keys (Decode):**
 
+```bash
+kubectl get secret -n starwars
+```
+
 To see what is written inside the secret, use this command:
 
 ```bash
 # Retrieve and decode the Postgres password
-kubectl get secret pgpassword -n starwars -o jsonpath="{.data.PGPASSWORD}" | base64 -d
+kubectl get secret pgpassword -n starwars -o jsonpath="{.data.PGPASSWORD}" | base64 -d; echo
 ```
 
 > **Explanation:**
@@ -96,13 +100,17 @@ kubectl apply -f deploy/front-configmap.yaml
 
 ## 🛡️ Step 2: The StatefulSet
 
-A `Deployment` is for stateless droids. They are clones.
-A Database has identity. Data it holds.
-Use a `StatefulSet` we must.
+In Level 3, we used a `Deployment`. That was risky.
+A `Deployment` treats pods like interchangeable clones. If you delete one, another appears, but it has no memory of who it was.
+
+For a Database, identity matters. We use a **StatefulSet**.
+
+- **Stable Network Identity**: The pod is named `postgres-0` (not `postgres-xc9s8`). It is unique.
+- **Sticky Storage**: It creates a `PersistentVolumeClaim` that belongs *only* to `postgres-0`. If the pod dies and restarts, it reattaches to the **same disk**. Your data is safe.
+- **Ordered Rollout**: It starts and stops pods in strict order (0, then 1, etc.), preventing data corruption during updates.
 
 - **Observe**: `postgres.yaml`.
 - **Change**: Notice `kind: StatefulSet` and `volumeClaimTemplates`.
-- **Effect**: Each pod gets a dedicated Persistent Volume. `postgres-0` is unique.
 
 ```bash
 kubectl apply -f deploy/postgres.yaml
@@ -116,6 +124,44 @@ kubectl get pods -n starwars -w
 
 # Check if the Persistent Volume Claim (PVC) was created
 kubectl get pvc -n starwars
+```
+
+---
+
+## 🚪 Step 4: The Gateway (Networking)
+
+We must re-establish the Gateway for this new architecture.
+
+**Install the CRDs and Controller:**
+
+```bash
+helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.6.0 -n envoy-gateway-system --create-namespace
+```
+
+*Wait you must, until the pods are ready:*
+
+```bash
+kubectl wait --timeout=5m -n envoy-gateway-system deployment/envoy-gateway --for=condition=Available
+```
+
+**Note for Padawans:** The routes have changed!
+In Level 4, we pointed to `back-service` (which might have been NodePort or LoadBalancer).
+In Level 5, we point to `back-cluster-ip-service`.
+
+> **Why ClusterIP?**
+> This service type restricts access to **internal** traffic only.
+>
+> - **Security**: The backend cannot be reached directly from the internet (or your laptop's localhost port).
+> - **Control**: All traffic MUST pass through the Gateway, which applies our rules (routing, rate limiting, security policies).
+> - **Production Standard**: We hide our droids behind the shields.
+
+```bash
+# Infrastructure (Gateway Class & Gateway)
+kubectl apply -f deploy/gatewayclass.yaml
+kubectl apply -f deploy/gateway-infra.yaml
+
+# Routes
+kubectl apply -f deploy/routes.yaml
 ```
 
 ---
@@ -156,8 +202,15 @@ kubectl apply -f deploy/front.yaml
 **Inspect the Deployment in action:**
 
 ```bash
-# quick check deploment
-kubectl get deployment back-deployment -n starwars
+# wait for back deployment
+kubectl get deployment back-deployment -n starwars -w
+
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+back-deployment   0/3     3            0           11s
+back-deployment   1/3     3            1           14s
+back-deployment   2/3     3            2           16s
+back-deployment   3/3     3            3           18s
+# `Ctrl+C` -> Exit.
 
 # quick check pods
 kubectl get pods -l component=back -n starwars
@@ -167,33 +220,60 @@ kubectl get pods -l component=back -n starwars
 
 # Read the logs to confirm startup:
 kubectl logs -l component=back -n starwars --tail=20
+
+INFO:     10.1.0.1:46482 - "GET / HTTP/1.1" 200 OK
 ```
 
----
+### 🧪 Testing Auto-Healing (The Jedi Trial)
 
-## 🚪 Step 4: The Gateway (Networking)
+A true Jedi trusts the Force, but verifies it. Let us test the resilience.
 
-We must re-establish the Gateway for this new architecture.
-
-**Note for Padawans:** The routes have changed!
-In Level 4, we pointed to `back-service` (which might have been NodePort or LoadBalancer).
-In Level 5, we point to `back-cluster-ip-service`.
-
-> **Why ClusterIP?**
-> This service type restricts access to **internal** traffic only.
->
-> - **Security**: The backend cannot be reached directly from the internet (or your laptop's localhost port).
-> - **Control**: All traffic MUST pass through the Gateway, which applies our rules (routing, rate limiting, security policies).
-> - **Production Standard**: We hide our droids behind the shields.
+**Trial 1: The Strike (Pod Deletion)**
+If a pod is destroyed (by a Sith Lord or a command), the Deployment must replace it.
 
 ```bash
-# Infrastructure (Gateway Class & Gateway)
-kubectl apply -f deploy/gatewayclass.yaml
-kubectl apply -f deploy/gateway-infra.yaml
+# 1. Watch the pods in one terminal
+kubectl get pods -n starwars -w
 
-# Routes
-kubectl apply -f deploy/routes.yaml
+# 2. In another terminal, destroy a backend pod
+# (Replace 'back-deployment-xxxx' with your actual pod name)
+kubectl delete pod back-deployment-xxxxxxxxx-xxxxx -n starwars
 ```
+
+**Observation**: Instantaneously, a new pod is created to take its place. This is the **ReplicaSet** controller in action.
+
+**Trial 2: The Internal Failure (Liveness Probe)**
+If the application freezes (deadlock), the **Liveness Probe** detects it. Now, with our new Force powers, we can simulate this.
+
+1. **Watch the pods**:
+    In one terminal, keep your eyes on the `RESTARTS` column.
+
+    ```bash
+    kubectl get pods -n starwars -w
+    ```
+
+2. **Trigger the Crash**:
+    In another terminal, make the backend unhealthy.
+    *(If using Gateway, replace `localhost:80` with your Gateway's IP `127.0.0.1` or `localhost`)*.
+
+    ```bash
+    curl -X POST http://localhost/api/simulate/crash
+    ```
+
+3. **Wait and Observe (Patience!)**:
+    It is not instant. Kubernetes gives the pod a chance to recover.
+    - The Liveness Probe checks every 15 seconds.
+    - It needs 3 failures to trigger a restart.
+    - **Wait about 45 seconds.**
+    - Suddenly, you will see `RESTARTS` increment (e.g., `0` -> `1`).
+    - The pod has been rebooted by the cluster. **Auto-Healing is active.**
+
+4. **Make it Healthy (Optional)**:
+    The new pod starts fresh (healthy), but if you want to be sure:
+
+    ```bash
+    curl -X POST http://localhost/api/simulate/heal
+    ```
 
 ---
 
@@ -241,13 +321,18 @@ For a quick test, we can launch a simple loop from a container inside the cluste
     kubectl get hpa -n starwars --watch
     ```
 
-    **If HPA shows `<unknown>/50%` CPU**
-    **Cause**: The Metrics Server cannot talk to the Kubelet (SSL error).
-    **Solution**: Patch the metrics server to allow insecure TLS (common in Docker Desktop).
+    **Wait! `TARGETS: <unknown>/50%`**:
+    Initially, you will see `TARGETS: <unknown>/50%`. **This is normal.**
+    The Metrics Server needs 1-2 minutes to collect the first data points.
+    Do not panic. Wait until you see `0%/50%` or similar.
+
+    **Troubleshooting**: If it stays `<unknown>` for more than 2 minutes, the Metrics Server might need a patch (common in Docker Desktop):
 
     ```bash
     kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
     ```
+
+    **Then wait again**
 
 2. **Fire the Blasters** (Open Terminal 2):
     *This command runs an infinite loop of requests as fast as possible.*
@@ -261,10 +346,8 @@ For a quick test, we can launch a simple loop from a container inside the cluste
 
     ```bash
     NAME       REFERENCE                    TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
-    back-hpa   Deployment/back-deployment   cpu: 2%/50%   1         5         1          41m
-    back-hpa   Deployment/back-deployment   cpu: 65%/50%  1         5         2          42m
-    back-hpa   Deployment/back-deployment   cpu: 85%/50%  1         5         3          43m
-    back-hpa   Deployment/back-deployment   cpu: 105%/50% 1         5         4          44m
+    back-hpa   Deployment/back-deployment   cpu: 2%/50%   1         5         3          5m36s
+    back-hpa   Deployment/back-deployment   cpu: 133%/50% 1         5         3          6m21s
     ```
 
 4. **Clean your Blasters**:
@@ -312,6 +395,7 @@ kubectl get hpa -n starwars --watch
 This creates a temporary pod that executes the script.
 
 ```bash
+cd workshop/level-5-sre/
 kubectl apply -f deploy/k6/job.yaml
 ```
 
@@ -375,15 +459,13 @@ Keep watching the HPA window. After a few minutes (usually 5m), Kubernetes will 
 
 ```bash
 # You will see REPLICAS drop back to 1
-back-hpa   Deployment/back-deployment   cpu: 4%/50%     1         5         1          9m
-back-hpa   Deployment/back-deployment   cpu: 82%/50%    1         5         1          9m
-back-hpa   Deployment/back-deployment   cpu: 129%/50%   1         5         2          10m
-back-hpa   Deployment/back-deployment   cpu: 119%/50%   1         5         4          11m
-back-hpa   Deployment/back-deployment   cpu: 38%/50%    1         5         5          12m
-back-hpa   Deployment/back-deployment   cpu: 3%/50%     1         5         5          13m
-back-hpa   Deployment/back-deployment   cpu: 3%/50%     1         5         5          16m
-back-hpa   Deployment/back-deployment   cpu: 3%/50%     1         5         4          17m
-back-hpa   Deployment/back-deployment   cpu: 3%/50%     1         5         1          18m
+NAME       REFERENCE                    TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+back-hpa   Deployment/back-deployment   cpu: 2%/50%   1         5         3          9m3s
+back-hpa   Deployment/back-deployment   cpu: 18%/50%  1         5         3          10m
+back-hpa   Deployment/back-deployment   cpu: 69%/50%  1         5         5          11m
+back-hpa   Deployment/back-deployment   cpu: 121%/50% 1         5         5          12m
+back-hpa   Deployment/back-deployment   cpu: 52%/50%  1         5         5          13m
+back-hpa   Deployment/back-deployment   cpu: 2%/50%   1         5         5          14m
 ```
 
 **6. Cease Fire (Cleanup K6):**
@@ -396,6 +478,15 @@ kubectl delete configmap k6-script -n starwars
 
 ---
 
+## 🧹 Step 7: Cleanup
+
+To delete the resources:
+
+```bash
+kubectl delete -f deploy
+kubectl delete ns starwars
+```
+
 ## 🏆 Conclusion
 
 **Rise, Jedi Master.**
@@ -407,6 +498,13 @@ You have built a cluster that is:
 - **Accessible** (Gateway)
 
 The Archives are safe. The Galaxy is at peace.
+
+### 📜 The Path to True Production
+
+However, a Jedi's training never ends.
+To run this in a real galaxy (AWS/GCP/Azure) with millions of users, you need more. Encryption, GitOps, Observability...
+
+👉 **[Read the PRODUCTION ROADMAP](PRODUCTION_ROADMAP.md)** to see what lies beyond.
 
 👉 *May the Force be with you, always.*
 
@@ -446,3 +544,19 @@ kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op":
 
 - Increase `initialDelaySeconds` in `back.yaml`.
 - Ensure your app binds to `0.0.0.0` (Already handled in our Dockerfile).
+
+### 3. Helm Error: "cannot reuse a name"
+
+If `helm install` fails with `cannot reuse a name that is still in use`, it means a previous installation exists (even if failed).
+
+**Solution:**
+
+```bash
+helm uninstall eg -n envoy-gateway-system
+```
+
+### 4. ImagePullBackOff
+
+If your pods fail with `ImagePullBackOff`, check the image name in your YAMLs.
+We use `jedy-backend:latest`. If the YAML says `jedy-starwarskubernetes-back:latest`, it is looking for the wrong ship!
+**Solution**: Edit the YAML to match your built image tag.

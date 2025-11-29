@@ -26,7 +26,7 @@ spec:
                 name: back-configmap
       containers:
         - name: server
-          image: jedy-starwarskubernetes-back:latest # Docker image optimized for production
+          image: jedy-backend:latest # Docker image optimized for production
           imagePullPolicy: IfNotPresent # Pull the image only if not present
           ports:
             - containerPort: 4000 # Port where the backend listens
@@ -65,6 +65,10 @@ spec:
             #     name: openrouter-api-key # Uncomment if using OpenRouter API
             - secretRef:
                 name: jwt-secret
+          env:
+            # Override any potential .env file DATABASE_URL with the K8s constructed one
+            - name: DATABASE_URL
+              value: "postgresql://$(PGUSER):$(PGPASSWORD)@$(PGHOST):$(PGPORT)/$(PGDATABASE)"
 --- 
 # --- Internal Service for Backend ---
 apiVersion: v1

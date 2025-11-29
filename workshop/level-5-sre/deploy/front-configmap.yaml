@@ -5,4 +5,4 @@ metadata:
   namespace: starwars
 data:
   # --- Frontend Configuration ---
-  REACT_APP_API_ENTRYPOINT: "/api"
+  API_URL: "http://back:4000"

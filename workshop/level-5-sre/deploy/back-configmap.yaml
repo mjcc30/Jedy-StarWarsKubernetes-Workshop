@@ -6,11 +6,9 @@ metadata:
 data:
   # --- Backend Configuration ---
   ROOT_PATH: "/api"
-  API_ENTRYPOINT: "https://swapi.dev/api"
+  SWAPI_ENTRYPOINT: "https://swapi.dev/api"
   # Database Connection Params (Non-sensitive)
   PGHOST: "postgres-cluster-ip-service"
   PGPORT: "5432"
   PGUSER: "postgres"
   PGDATABASE: "postgres"
-  # --- Frontend Configuration ---
-  REACT_APP_API_ENTRYPOINT: "/api"

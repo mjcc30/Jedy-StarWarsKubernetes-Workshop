@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: client
-          image: jedy-starwarskubernetes-front:latest # Docker image optimized for production
+          image: jedy-frontend:latest # Docker image optimized for production
           imagePullPolicy: IfNotPresent # Pull the image only if not present
           ports:
             - containerPort: 4321

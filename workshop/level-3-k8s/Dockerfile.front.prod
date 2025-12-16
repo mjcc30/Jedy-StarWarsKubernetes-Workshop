@@ -10,7 +10,7 @@ COPY package*.json ./
 # Install production dependencies in a separate stage
 FROM base AS prod-deps
 # Install only production deps
-RUN npm ci --omit=dev
+RUN npm install
 
 # Build stage
 FROM base AS build

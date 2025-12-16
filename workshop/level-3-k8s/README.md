@@ -147,10 +147,10 @@ kubectl get deploy front-deployment -n starwars
     We can use `kubectl` to create a temporary portal to the service.
 
     ```bash
-    kubectl port-forward svc/front-service -n starwars 8080:80
+    kubectl port-forward svc/front-service -n starwars 8080:4321
     ```
 
-    *(If port 8080 is busy, try a random one like `45678:80`)*
+    *(If port 8080 is busy, try a random one like `45678:4321`)*
 
     *Keep this terminal open!*
 
